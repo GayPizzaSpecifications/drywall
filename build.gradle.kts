@@ -13,7 +13,6 @@ repositories {
 
 dependencies {
 	implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.3.3")
-
 	testImplementation(kotlin("test"))
 }
 
@@ -40,39 +39,33 @@ gradlePlugin {
 }
 
 publishing {
-  repositories {
-    mavenLocal()
+	repositories {
+		mavenLocal()
 
-    var githubPackagesToken = System.getenv("GITHUB_TOKEN")
-    if (githubPackagesToken == null) {
-      githubPackagesToken = project.findProperty("github.token") as String?
-    }
+		val githubPackagesToken = System.getenv("GITHUB_TOKEN")
+			?: project.findProperty("github.token") as String?
+		val gitlabPackagesToken = System.getenv("GITLAB_TOKEN")
+			?: project.findProperty("gitlab.com.accessToken") as String?
 
-    var gitlabPackagesToken = System.getenv("GITLAB_TOKEN")
-    if (gitlabPackagesToken == null) {
-      gitlabPackagesToken = project.findProperty("gitlab.com.accessToken") as String?
-    }
+		maven {
+			name = "GitHubPackages"
+			url = uri("https://maven.pkg.github.com/gaypizzaspecifications/drywall")
+			credentials {
+				username = project.findProperty("github.username") as String? ?: "gaypizzaspecifications"
+				password = githubPackagesToken
+			}
+		}
 
-    maven {
-      name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/gaypizzaspecifications/drywall")
-      credentials {
-        username = project.findProperty("github.username") as String? ?: "gaypizzaspecifications"
-        password = githubPackagesToken
-      }
-    }
-
-    maven {
-      name = "GitLab"
-      url = uri("https://gitlab.com/api/v4/projects/47347654/packages/maven")
-      credentials(HttpHeaderCredentials::class.java) {
-        name = "Private-Token"
-        value = gitlabPackagesToken
-      }
-
-      authentication {
-        create<HttpHeaderAuthentication>("header")
-      }
-    }
-  }
+		maven {
+			name = "GitLab"
+			url = uri("https://gitlab.com/api/v4/projects/47347654/packages/maven")
+			credentials(HttpHeaderCredentials::class.java) {
+				name = "Private-Token"
+				value = gitlabPackagesToken
+			}
+			authentication {
+				create<HttpHeaderAuthentication>("header")
+			}
+		}
+	}
 }
